@@ -3,6 +3,7 @@ package com.philiphassialis.broker.wallet;
 import com.philiphassialis.broker.api.RestApiResponse;
 import com.philiphassialis.broker.data.InMemoryAccountStore;
 import com.philiphassialis.broker.wallet.error.CustomError;
+import com.philiphassialis.broker.wallet.error.FiatCurrencyNotSupportedException;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -41,6 +42,9 @@ public record WalletController(InMemoryAccountStore store) {
 
     @Post(value = "/withdraw", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
     public void withdrawFiatMoney(@Body WithdrawFiatMoney withdraw) {
+        if (!SUPPORTED_FIAT_CURRENCIES.contains(withdraw.symbol().value())) {
+            throw new FiatCurrencyNotSupportedException(String.format("Supported currencies %s", SUPPORTED_FIAT_CURRENCIES));
+        }
     }
 
 }
