@@ -1,7 +1,9 @@
 package com.philiphassialis.broker.data;
 
+import java.math.BigDecimal;
 import java.util.*;
 
+import com.philiphassialis.broker.wallet.DepositFiatMoney;
 import com.philiphassialis.broker.wallet.Wallet;
 import com.philiphassialis.broker.watchlist.WatchList;
 
@@ -27,5 +29,18 @@ public class InMemoryAccountStore {
 
   public Collection<Wallet> getWallets(final UUID accountId) {
     return Optional.ofNullable(walletsPerAccount.get(accountId)).orElse(new HashMap<>()).values();
+  }
+
+
+  public Wallet depositToWallet(DepositFiatMoney deposit) {
+    final var wallets = Optional.ofNullable(walletsPerAccount.get(deposit.accountId()))
+            .orElse(new HashMap<>());
+    var oldWallet = Optional.ofNullable(wallets.get(deposit.walletId()))
+            .orElse(new Wallet(ACCOUNT_ID, deposit.walletId(), deposit.symbol(), BigDecimal.ZERO, BigDecimal.ZERO));
+    var newWallet = oldWallet.addAvailable(deposit.amount());
+    // update wallet in memory store
+    wallets.put(deposit.walletId(), newWallet);
+    walletsPerAccount.put(deposit.accountId(), wallets);
+    return newWallet;
   }
 }
